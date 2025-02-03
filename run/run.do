@@ -45,7 +45,7 @@ vlog -work $lib_name  [file join $rtl_ck_dir uart.sv]
 
 if [file exists work] {vdel -all}
 vlib work
-vlog ../uvm_library/src/uvm_pkg.sv +incdir+../uvm_library/src/ +define+UVM_NO_DPI
+vlog ../UVM_Library/src/uvm_pkg.sv +incdir+../UVM_Library/src/ +define+UVM_NO_DPI
 vlog -f compile_sv.f
 onbreak {resume}
 set NoQuitOnFinish 1
