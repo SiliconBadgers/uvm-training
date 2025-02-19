@@ -14,5 +14,5 @@
 
 ```
  cd uvm-training/run
- vsim -c -do run do
+ vsim -c -do run.do
 ```
