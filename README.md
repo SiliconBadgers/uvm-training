@@ -8,7 +8,7 @@
 ```
  git clone https://github.com/ihagedo/uvm-training.git
  git submodule init
- git sumbodule update
+ git submodule update
 ```
 ### After checking out the repo, please follow the steps below to complie design and verification files
 
