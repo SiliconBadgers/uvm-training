@@ -3,4 +3,4 @@
 	url = https://github.com/whatmough/CHIPKIT
 [submodule "UVM_Library"]
 	path = UVM_Library
-	url = https://github.com/ihagedo/UVM_Library
+	url = git@github.com:ihagedo/UVM_Library.git
