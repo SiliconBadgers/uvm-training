@@ -16,7 +16,7 @@
 ### Checkout repo and submodules
 
 ```shell
- git clone --recurse-submodules https://github.com/ihagedo/uvm-training.git
+ git clone --recurse-submodules https://github.com/SiliconBadgers/uvm-training.git
 ```
 ### After checking out the repo, please follow the steps below to start the simulation
 
