@@ -1,0 +1,15 @@
+# File:        environment.yml
+# Author:      Isaac Hagedorn
+# Date:        2025-03-29
+# Description: Toolchain for the course (micromamba create -f env/environment.yml).
+name: sb-uvm
+channels:
+  - conda-forge
+dependencies:
+  - verilator=5.052      # simulator
+  - z3prover=5.1.0       # constraint solver for randomize()
+  - cxx-compiler         # C++ compiler Verilator uses
+  - lz4-c                # needed for FST waves
+  - make
+  - python=3.12
+  - gtkwave              # wave viewer
