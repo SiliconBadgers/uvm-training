@@ -30,5 +30,9 @@ for _sb_sim in "$@"; do
   esac
 done
 
+# mentor/suite puts a Calibre python3 wrapper first on PATH, which breaks the course scripts;
+# keep the conda env (python3, verilator) in front. The Makefiles drop it again for the simulator containers.
+export PATH="$SB_UVM_ENV/bin:$PATH"
+
 echo "[setup] ready: verilator $(verilator --version | awk '{print $2}')$(for _sb_t in vsim xrun vcs; do command -v $_sb_t >/dev/null && printf ', %s' $_sb_t; done)"
 unset _sb_dir _sb_sim _sb_t
