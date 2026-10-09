@@ -7,3 +7,6 @@
 [submodule "examples/uart"]
 	path = examples/uart
 	url = ../uvm-uart.git
+[submodule "examples/fifo"]
+	path = examples/fifo
+	url = ../uvm-fifo.git
