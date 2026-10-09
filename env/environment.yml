@@ -13,3 +13,4 @@ dependencies:
   - make
   - python=3.12
   - gtkwave              # wave viewer
+  - iverilog=13.0         # 4-state simulator for the FIFO example's probes

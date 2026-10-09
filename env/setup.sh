@@ -17,6 +17,9 @@ if [ ! -x "$SB_UVM_ENV/bin/verilator" ]; then
   echo "[setup] creating $SB_UVM_ENV (first time only: about 2 GB and a few minutes)"
   # -p: without it mamba tries the read-only system env directory
   mamba env create -y -p "$SB_UVM_ENV" -f "$_sb_dir/environment.yml" || return 1
+elif [ ! -x "$SB_UVM_ENV/bin/iverilog" ]; then
+  echo "[setup] adding new packages to $SB_UVM_ENV"
+  mamba env update -y -p "$SB_UVM_ENV" -f "$_sb_dir/environment.yml" || return 1
 fi
 conda activate "$SB_UVM_ENV" || return 1
 
