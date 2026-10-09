@@ -10,3 +10,6 @@
 [submodule "examples/fifo"]
 	path = examples/fifo
 	url = ../uvm-fifo.git
+[submodule "examples/dma"]
+	path = examples/dma
+	url = ../uvm-dma.git
