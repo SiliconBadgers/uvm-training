@@ -9,9 +9,11 @@ The SiliconBadgers UVM course. Start here.
 | 0 | [Setup](#setup) below | Tools working; `make check` passes |
 | 1 | `examples/adder` ([uvm-adder](https://github.com/ihagedo/uvm-adder)) | Read and run the smallest complete UVM testbench, then the exercises |
 | 2 | `examples/uart` ([uvm-uart](https://github.com/ihagedo/uvm-uart)) | Read and run an agent with a config object and a serial protocol, then the exercises |
-| 3 | [uvm-onboarding](https://github.com/ihagedo/uvm-onboarding) | On your own branch: write test plans and testbenches for designs you have not seen, from their specs, and find their bugs |
+| 3 | `examples/fifo` ([uvm-fifo](https://github.com/ihagedo/uvm-fifo)) | Read and run a testbench built from a spec and a test plan: reference model, coverage, assertions and planted bugs, then the exercises |
+| 4 | `examples/dma` ([uvm-dma](https://github.com/ihagedo/uvm-dma)) | Read and run a multi-agent testbench with a register model and reactive memories, then the exercises |
+| 5 | [uvm-onboarding](https://github.com/ihagedo/uvm-onboarding) | On your own branch: write test plans and testbenches for designs you have not seen, from their specs, and find their bugs |
 
-Steps 1 and 2 are worked examples: complete testbenches to read, run and modify. Step 3 is where you build your own.
+Steps 1 to 4 are worked examples: complete testbenches to read, run and modify. Step 5 is where you build your own.
 
 ## Setup
 
@@ -55,6 +57,8 @@ make clean
 |---|---|---|
 | `examples/adder` | `ihagedo/uvm-adder` | Worked example 1 |
 | `examples/uart` | `ihagedo/uvm-uart` | Worked example 2 |
+| `examples/fifo` | `ihagedo/uvm-fifo` | Worked example 3 |
+| `examples/dma` | `ihagedo/uvm-dma` | Worked example 4 |
 | `UVM_Library` | `ihagedo/UVM_Library` | Accellera UVM 1.2: source, `UVM_Reference.html`, examples |
 | `env/` | | Toolchain: conda env and `setup.sh` |
 | `Makefile` | | `make check` / `make check-all` over every example |
