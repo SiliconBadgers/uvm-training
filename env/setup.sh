@@ -37,5 +37,5 @@ done
 # keep the conda env (python3, verilator) in front. The Makefiles drop it again for the simulator containers.
 export PATH="$SB_UVM_ENV/bin:$PATH"
 
-echo "[setup] ready: verilator $(verilator --version | awk '{print $2}')$(for _sb_t in vsim xrun vcs; do command -v $_sb_t >/dev/null && printf ', %s' $_sb_t; done)"
+echo "[setup] ready: verilator $(verilator --version | awk '{print $2}')$(for _sb_t in vsim xrun vcs; do case "$(command -v $_sb_t)" in ""|/usr/local/cae/bin/*) ;; *) printf ', %s' $_sb_t ;; esac; done)"
 unset _sb_dir _sb_sim _sb_t
