@@ -1,168 +1,78 @@
 # uvm-training
- This repo gives a quick practical introduction to UVM. It is stressing the UART transmitter & receiver side, and it gives a basic implementation of the UVM infrastructure. It works with Microchip's Modelsim free version. There is no need to have compiled UVM libraries. Design,simulation, and UVM libraries are compiled through ".do" file located under "run" folder. All the work has been realized in Ubuntu operating system.
- 
- ### :zap: Key Features
-- Configurable Reset Polarity
-- Configurable Data bit settings
-- Configurable Baud Rate settings
-- Configurable Parity settings
-- Configurable Stop bit settings
-- Data error detection (expected vs actual)
-- Parity error detection
-- Stop bit error detection
 
-![image info](./docs/uvm.svg)
+The SiliconBadgers UVM course. Start here.
 
-### Checkout repo and submodules
+## Course path
 
-```shell
- git clone --recurse-submodules https://github.com/SiliconBadgers/uvm-training.git
-```
-### After checking out the repo, please follow the steps below to start the simulation
+| Step | Where | What you do |
+|---|---|---|
+| 0 | [Setup](#setup) below | Tools working; `make check` passes |
+| 1 | `examples/adder` ([uvm-adder](https://github.com/ihagedo/uvm-adder)) | Read and run the smallest complete UVM testbench, then the exercises |
+| 2 | `examples/uart` ([uvm-uart](https://github.com/ihagedo/uvm-uart)) | Read and run an agent with a config object and a serial protocol, then the exercises |
+| 3 | `examples/fifo` ([uvm-fifo](https://github.com/ihagedo/uvm-fifo)) | Read and run a testbench built from a spec and a test plan: reference model, coverage, assertions and planted bugs, then the exercises |
+| 4 | `examples/dma` ([uvm-dma](https://github.com/ihagedo/uvm-dma)) | Read and run a multi-agent testbench with a register model and reactive memories, then the exercises |
+| 5 | [uvm-onboarding](https://github.com/ihagedo/uvm-onboarding) | On your own branch: write test plans and testbenches for designs you have not seen, from their specs, and find their bugs |
 
-```shell
- cd uvm-training/run
- vsim -do run.do
-```
-## UVC integration
+Steps 1 to 4 are worked examples: complete testbenches to read, run and modify. Step 5 is where you build your own.
 
-- Include interface and package files on your top-level testbench module:
-```verilog
-`include "uart_if.svh"
-`include "verif_pkg.svh"
-...
-module top_tb
-...
-```
-- Import verification package (environment, scoreboard, test) and uvm package:
-```verilog
- module top_tb
- ...
- import uvm_pkg::*;
- import verif_pkg::*;
-```
-- Instantiate the interface on your top-level testbench module, drive the reset and clock signals:
-```verilog
- uart_if uart_if_inst(
- .resetn_i   (resetn_i),
- .clock_i    (clock_i)
- );
-```
-- Connect interface to DUT:
- ```verilog
-  uart  uart_rx_CHIPKIT_inst(
- .clk        (uart_if_inst.clock_i)     ,
- .rstn       (uart_if_inst.resetn_i)    ,
- ...
- .rx_err     ()
-);
-```
-- Register the interface as virtual interface to uvm_config_db and call run_test:
+## Setup
 
-```verilog
- initial
- begin
- // Setting interfaces to uvm_config_db
- // config_db get is done in env_top class
- uvm_config_db #(virtual uart_if)::set(null,"*","uart_vif",uart_if_inst);
- // Execute UVM test class
- run_test();
- end
-```
-- Handle the agent configuration class, agent class, and scoreboard class in your environment class:
-```verilog
- class env_top extends uvm_env;
- // UVM macro Factory registration
- `uvm_component_utils(env_top)
- // Instantiate UART agent and settings
- uart_config uart_agent_config_h;
- uart_agent h_uart_agent;
-// Instantiate UART scoreboard
-uart_scoreboard uart_scoreboard_h;
-```
-- Construct the agent configuration, agent, and scoreboard in in build_phase (environment class):
-```verilog
- function void env_top::build_phase(uvm_phase phase);
- super.build_phase(phase);
-...
- // Construct config class
- uart_agent_config_h = uart_config::type_id::create("uart_agent_config_h", this);
- // Construct agent class
- uart_agent_h = uart_agent::type_id::create("uart_agent_h",this);
-// Construct scoreboard class
-uart_scoreboard_h = uart_scoreboard::type_id::create("uart_scoreboard_h",this);
-```
-- Get the virtual interface from uvm_config_db and assign to the vif in the agent config class in build_phase (environment class):
-```verilog
- function void env_top::build_phase(uvm_phase phase);
- super.build_phase(phase);
-...
- // Get virtual interfaces, which is set by top_tb, from config_db
- if(!uvm_config_db #(virtual uart_if)::get(this, "", "uart_vif", uart_agent_config_h.vif)) begin
- VIF_FATAL: `uvm_fatal("VIF CONFIG","cannot get uart_vif from uvm_config_db")
- end
-```
-- Set the configuration parameters to uvm_config_db in build_phase (environment class):
-```verilog
- function void env_top::build_phase(uvm_phase phase);
- super.build_phase(phase);
-...
- // Set the config paramaeters (baud, parity, reset poloarity. etc) of the agent
- // config_db get is done in uart_agent class
- uvm_config_db #(uart_config)::set(this,"uart_agent_h", "uart_config", uart_agent_config_h);
- // config_db get is done in uart_scoreboard class
- uvm_config_db #(uart_config)::set(this,"uart_scoreboard_h", "uart_config", uart_agent_config_h);
- end
-```
-- Connect monitor to scoreboard in connect_phase (environment class):
-```verilog
-function void env_top::connect_phase (uvm_phase phase); 
- // Connecting the monitor's analysis ports with uart_scoreboard's expected analysis exports.
- uart_agent_h.monitor_h.monitor_port.connect(uart_scoreboard_h.observed);  
-endfunction:connect_phase
-```
-- Set parameters for your agent:
-```verilog
- uart_agent_config_h.baud_rate          = 115_200            ;
- uart_agent_config_h.number_data_bits   = EIGHT_WIDTH        ;
- uart_agent_config_h.reset_polarity     = ACTIVE_LOW         ;
- uart_agent_config_h.stop_bit           = STOP_BIT_TWOBITS   ;
- uart_agent_config_h.parity_bit         = PARITY_NONE        ;
-```
-- All set! :star:
-  
-## Configuration fields of the UVC (Default values types' are declared in ./agent/typedefs.svh)
+You need SSH access to the `ihagedo` repositories.
 
-| Name              | Location                    | Default value   |
-| ---               | ---                         | ---             |
-| reset_polarity    | ./agent/uart_config.svh     | ACTIVE_LOW      |
-| baud_rate         | ./agent/uart_config.svh     | 115_200         |
-| number_data_bits  | ./agent/uart_config.svh     | EIGHT_WIDTH     |
-| stop_bit          | ./agent/uart_config.svh     | STOP_BIT_ONEBIT |
-| parity_bit        | ./agent/uart_config.svh     | PARITY_ODD      |
-
-## To generate additional tests
-- Go to ./test/verif_pkg.svh, and include your new testcase  `include "../test/your_new_testcase.svh"
-```verilog
-package verif_pkg;
-
- import uvm_pkg::*;
- import uart_pkg::*;
-
- `include "uvm_macros.svh"
-    
- `include "../environment/uart_scoreboard.svh"
- `include "../environment/env_top.svh"
- `include "../test/test_top.svh"
- `include "../test/tc_direct_urx_utx.svh"
- `include "../test/your_new_testcase.svh"
-
-endpackage
+```bash
+git clone --recurse-submodules git@github.com:ihagedo/uvm-training.git
+cd uvm-training
+source env/setup.sh            # Verilator 5.052 (default); creates the conda env on first use
+source env/setup.sh questa     # also Questa; or xcelium, vcs, or several
+make check                     # every example on Verilator
+make check SIM=questa          # or on another simulator
 ```
-- After including your new test case, go to ./run/do.run
-```shell
-...
-set uvm_test        your_new_testcase           ;   # UVM testname
-...
+
+`env/setup.sh` activates the Verilator conda env (`~/.conda/envs/sb-uvm`, about 2 GB, built from `env/environment.yml`) and loads the CAE module for each simulator you name.
+
+| `SIM=` | Simulator | Module | Notes |
+|---|---|---|---|
+| `verilator` (default) | Verilator 5.052 | conda env | 2-state; each build takes about 1.5 min and 300–700 MB |
+| `questa` | Questa 2025.1 | `mentor/suite/2026` | Runs inside `mentor-run`; `make gui` opens the GUI |
+| `xcelium` | Xcelium 25.09 | `cadence/xcelium/2509` | The default `cadence/xcelium` (2603) is newer than the campus license |
+| `vcs` | VCS 2026.03 | `synopsys/vcs-mx/2026.03` | Runs inside `synopsys-run`, 64-bit |
+
+Every simulator compiles the same UVM 1.2 source (`UVM_Library/src`, with `UVM_NO_DPI`).
+
+## Running an example
+
+Every example takes the same knobs:
+
+```bash
+cd examples/uart
+make run [SIM=questa] [TEST=<test>] [SEED=<n>] [VERB=UVM_HIGH]
+make waves                     # FST on Verilator (gtkwave), VCD elsewhere
+make gui SIM=questa            # Questa GUI with waves
+make clean
 ```
-- It is ready to stress the design with new test case! :star:
+
+## Layout
+
+| Path | Repository | Contents |
+|---|---|---|
+| `examples/adder` | `ihagedo/uvm-adder` | Worked example 1 |
+| `examples/uart` | `ihagedo/uvm-uart` | Worked example 2 |
+| `examples/fifo` | `ihagedo/uvm-fifo` | Worked example 3 |
+| `examples/dma` | `ihagedo/uvm-dma` | Worked example 4 |
+| `UVM_Library` | `ihagedo/UVM_Library` | Accellera UVM 1.2: source, `UVM_Reference.html`, examples |
+| `env/` | | Toolchain: conda env and `setup.sh` |
+| `Makefile` | | `make check` / `make check-all` over every example |
+
+## For maintainers
+
+**Update an example:** commit and push in the example's repository, then in this one run `git submodule update --remote examples/<name>`, run `make check-all`, and commit the new submodule pointer.
+
+**Add a worked example:**
+
+1. Create `ihagedo/uvm-<name>`. Copy `examples/uart/Makefile` and adapt `TOP`, `INCS`, `SRCS` and `DEPS` so it takes the same knobs. Write a README with *Run it*, *Walkthrough* and *Exercises*. A `check-bug` target (see `examples/adder/Makefile`) lets `make check` confirm the testbench catches a seeded bug.
+2. `git submodule add ../uvm-<name>.git examples/<name>` (relative URLs work over SSH and HTTPS).
+3. `make check-all` with every simulator loaded, then commit.
+
+## History
+
+Until October 2026 this repository was the UART example itself, with the RTL from a CHIPKIT submodule. The UART testbench now lives in `ihagedo/uvm-uart` with the RTL copied in.

@@ -1,10 +1,6 @@
 .DS_Store
-run/modelsim_lib/*
-run/*.wlf
-run/transcript
-run/wave.do
-run/modelsim.ini
-run/work/
-run/rtl_macros.svh
-run/tr_db.log
+build/
+*.vcd
+*.fst
+*.wlf
 transcript
