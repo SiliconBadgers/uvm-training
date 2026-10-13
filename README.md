@@ -2,6 +2,8 @@
 
 The SiliconBadgers UVM course. Start here.
 
+This repository is a reference: working designs and testbenches, with their documentation, to read and run. Every example passes `make check`. Your own verification work does not go here. The onboarding projects live in [SiliconBadgers/technical-projects](https://github.com/SiliconBadgers/technical-projects/tree/main/verif) under `verif/`.
+
 ## Course path
 
 | Step | Where | What you do |
@@ -11,9 +13,9 @@ The SiliconBadgers UVM course. Start here.
 | 2 | `examples/uart` ([uvm-uart](https://github.com/ihagedo/uvm-uart)) | Read and run an agent with a config object and a serial protocol, then the exercises |
 | 3 | `examples/fifo` ([uvm-fifo](https://github.com/ihagedo/uvm-fifo)) | Read and run a testbench built from a spec and a test plan: reference model, coverage, assertions and planted bugs, then the exercises |
 | 4 | `examples/dma` ([uvm-dma](https://github.com/ihagedo/uvm-dma)) | Read and run a multi-agent testbench with a register model and reactive memories, then the exercises |
-| 5 | [uvm-onboarding](https://github.com/ihagedo/uvm-onboarding) | On your own branch: write test plans and testbenches for designs you have not seen, from their specs, and find their bugs |
+| 5 | [technical-projects](https://github.com/SiliconBadgers/technical-projects/tree/main/verif) `verif/` | On your own branch: write test plans and testbenches for designs you have not seen, from their specs, and find their bugs |
 
-Steps 1 to 4 are worked examples: complete testbenches to read, run and modify. Step 5 is where you build your own.
+Steps 1 to 4 are worked examples: complete testbenches to read, run and modify. Step 5 is where you build your own, in `technical-projects`, not here.
 
 ## Setup
 
@@ -64,6 +66,8 @@ make clean
 | `Makefile` | | `make check` / `make check-all` over every example |
 
 ## For maintainers
+
+Only working, reviewed examples belong here. Trainee testbenches, test plans and bug reports go in `SiliconBadgers/technical-projects` under `verif/`.
 
 **Update an example:** commit and push in the example's repository, then in this one run `git submodule update --remote examples/<name>`, run `make check-all`, and commit the new submodule pointer.
 
