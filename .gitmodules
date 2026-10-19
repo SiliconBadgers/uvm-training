@@ -1,12 +1,12 @@
 [submodule "UVM_Library"]
 	path = UVM_Library
-	url = ../UVM_Library.git
+	url = https://github.com/ihagedo/UVM_Library.git
 [submodule "examples/adder"]
 	path = examples/adder
-	url = ../uvm-adder.git
+	url = https://github.com/ihagedo/uvm-adder.git
 [submodule "examples/uart"]
 	path = examples/uart
-	url = ../uvm-uart.git
+	url = https://github.com/ihagedo/uvm-uart.git
 [submodule "examples/fifo"]
 	path = examples/fifo
 	url = https://github.com/ihagedo/uvm-fifo.git
