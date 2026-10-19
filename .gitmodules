@@ -1,6 +1,15 @@
-[submodule "CHIPKIT"]
-	path = CHIPKIT
-	url = https://github.com/whatmough/CHIPKIT
 [submodule "UVM_Library"]
 	path = UVM_Library
-	url = https://github.com/SiliconBadgers/UVM_Library.git
+	url = ../UVM_Library.git
+[submodule "examples/adder"]
+	path = examples/adder
+	url = ../uvm-adder.git
+[submodule "examples/uart"]
+	path = examples/uart
+	url = ../uvm-uart.git
+[submodule "examples/fifo"]
+	path = examples/fifo
+	url = ../uvm-fifo.git
+[submodule "examples/dma"]
+	path = examples/dma
+	url = ../uvm-dma.git
