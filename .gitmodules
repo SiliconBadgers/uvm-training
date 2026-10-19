@@ -9,7 +9,7 @@
 	url = ../uvm-uart.git
 [submodule "examples/fifo"]
 	path = examples/fifo
-	url = ../uvm-fifo.git
+	url = https://github.com/ihagedo/uvm-fifo.git
 [submodule "examples/dma"]
 	path = examples/dma
-	url = ../uvm-dma.git
+	url = https://github.com/ihagedo/uvm-dma.git
