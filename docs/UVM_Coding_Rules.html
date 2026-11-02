@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>UVM Coding Rules</title>
+<style>
+@page { size: Letter; margin: 0.55in 0.6in 0.65in; }
+:root { --ink:#1c2430; --muted:#5b6575; --line:#c9d1dc; --soft:#f4f6f9; }
+body { font-family:-apple-system,"Helvetica Neue",Helvetica,Arial,sans-serif; color:var(--ink); font-size:10pt; line-height:1.45; margin:0; background:#fff; }
+h1 { font-size:20pt; margin:0 0 6px; }
+h2 { font-size:13.5pt; margin:18px 0 6px; padding-top:4px; border-top:2px solid var(--ink); }
+p { margin:4px 0 8px; } ul,ol { margin:4px 0 8px; padding-left:20px; } li { margin:2px 0; }
+code { font-family:"SF Mono",Menlo,monospace; font-size:8.6pt; background:var(--soft); padding:0 3px; border-radius:3px; }
+pre { background:#fbfcfd; border:1px solid var(--line); border-radius:6px; padding:8px 10px; break-inside:avoid; white-space:pre-wrap; }
+pre code { background:none; padding:0; font-size:8.2pt; }
+table { width:100%; border-collapse:collapse; margin:6px 0 10px; font-size:9pt; break-inside:avoid; }
+th,td { text-align:left; vertical-align:top; padding:3px 6px; border-bottom:1px solid var(--line); }
+th { background:var(--soft); }
+</style>
+</head>
+<body>
+<h1>UVM testbench conventions</h1>
+<p>This repo is a small UVM testbench for the CHIPKIT UART (loopback: driver sends on <code>rxd</code>, monitor reads <code>txd</code>). When you build an agent/env/test for another module, copy the structure and style below. The UART files are the reference; read them before writing anything new.</p>
+<h2>Layout</h2>
+<pre><code>agent/         one protocol agent, everything in one package (&lt;proto&gt;_pkg)
+environment/   env_top + scoreboard(s)
+test/          test_top, test cases (tc_*), verif_pkg
+top_tb/        top_tb.sv: clock, reset, interface, DUT, config_db, run_test()
+run/           run.do (ModelSim/Questa compile + sim script)
+</code></pre>
+<p>For a second protocol, add <code>agent_&lt;proto&gt;/</code> (or a subfolder per agent) with its own <code>&lt;proto&gt;_pkg.svh</code>. Don't put two protocols in one package.</p>
+<h2>File and name conventions</h2>
+<table>
+<thead>
+<tr>
+<th>Thing</th>
+<th>Name</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>File per class</td>
+<td><code>&lt;proto&gt;_&lt;role&gt;.svh</code></td>
+<td><code>uart_driver.svh</code></td>
+</tr>
+<tr>
+<td>Sequence item</td>
+<td><code>&lt;proto&gt;_seqit</code></td>
+<td><code>uart_seqit</code></td>
+</tr>
+<tr>
+<td>Config object</td>
+<td><code>&lt;proto&gt;_config</code></td>
+<td><code>uart_config</code></td>
+</tr>
+<tr>
+<td>Interface</td>
+<td><code>&lt;proto&gt;_if</code>, file <code>&lt;proto&gt;_if.svh</code></td>
+<td><code>uart_if</code></td>
+</tr>
+<tr>
+<td>Package</td>
+<td><code>&lt;proto&gt;_pkg</code></td>
+<td><code>uart_pkg</code></td>
+</tr>
+<tr>
+<td>Top env / base test</td>
+<td><code>env_top</code>, <code>test_top</code></td>
+<td></td>
+</tr>
+<tr>
+<td>Test case</td>
+<td><code>tc_&lt;style&gt;_&lt;what&gt;</code></td>
+<td><code>tc_direct_urx_utx</code></td>
+</tr>
+<tr>
+<td>Class handles</td>
+<td>suffix <code>_h</code></td>
+<td><code>driver_h</code>, <code>env_h</code>, <code>uart_config_h</code></td>
+</tr>
+<tr>
+<td>Module instances</td>
+<td>suffix <code>_inst</code></td>
+<td><code>uart_if_inst</code></td>
+</tr>
+<tr>
+<td>Virtual interface</td>
+<td>always <code>vif</code></td>
+<td></td>
+</tr>
+<tr>
+<td>Enum types</td>
+<td><code>t_</code> prefix, UPPER_CASE values, explicit encodings</td>
+<td><code>t_parity</code>, <code>PARITY_ODD = 1</code></td>
+</tr>
+<tr>
+<td>Interface params</td>
+<td><code>c_</code> prefix, UPPER_CASE</td>
+<td><code>c_CLOCK_PERIOD_NS</code></td>
+</tr>
+<tr>
+<td>config_db keys</td>
+<td><code>&lt;proto&gt;_vif</code>, <code>&lt;proto&gt;_config</code></td>
+<td><code>"uart_vif"</code></td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>Default <code>name</code> argument in <code>new()</code> is the class name: <code>function new(string name = "uart_driver", uvm_component parent);</code></li>
+<li>Factory create name matches the handle name: <code>driver_h = uart_driver::type_id::create("driver_h", this);</code></li>
+<li>Always create through the factory (<code>::type_id::create</code>), never <code>new()</code>, except TLM ports.</li>
+</ul>
+<h2>Class skeleton</h2>
+<p>Every class follows this order. Prototypes go in the class with <code>extern</code>, bodies go below with <code>class::method</code>. Close every method with a label (<code>endfunction:new</code>, <code>endtask:run_phase</code>, <code>endclass:uart_monitor</code>).</p>
+<pre><code class="language-systemverilog">class uart_monitor extends uvm_monitor;
+   // UVM macro Factory registration
+   `uvm_component_utils(uart_monitor)
+
+   // Config class
+   uart_config uart_config_h;
+   // Virtual interface
+   virtual uart_if vif;
+
+   uvm_analysis_port #(uart_seqit) monitor_port;
+
+   extern function new(string name = &quot;uart_monitor&quot;, uvm_component parent);
+   extern function void build_phase(uvm_phase phase);
+   extern task run_phase(uvm_phase phase);
+endclass:uart_monitor
+
+function uart_monitor::new(string name = &quot;uart_monitor&quot;, uvm_component parent);
+   super.new(name, parent);
+   monitor_port = new(&quot;monitor_port&quot;, this);
+endfunction:new
+</code></pre>
+<ul>
+<li>Components use <code>`uvm_component_utils</code>, items/sequences/config use <code>`uvm_object_utils</code>.</li>
+<li>Call <code>super.&lt;phase&gt;(phase)</code> first in <code>build_phase</code> and <code>start_of_simulation_phase</code>.</li>
+<li>Use <code>get_type_name()</code> as the report ID inside components.</li>
+<li>Every fatal/error/info gets an UPPER_CASE statement label, so it's greppable in the source:</li>
+</ul>
+<pre><code class="language-systemverilog">FATAL_CONFIG_DB: `uvm_fatal(&quot;CONFIG&quot;, &quot;cannot get() uart_config_h from uvm_config_db.&quot;)
+</code></pre>
+<h2>Package include order</h2>
+<p><code>&lt;proto&gt;_pkg.svh</code> imports <code>uvm_pkg</code>, includes <code>uvm_macros.svh</code>, then files in dependency order:</p>
+<pre><code>typedefs  -&gt;  seqit  -&gt;  config  -&gt;  driver, monitor, sequencer  -&gt;  sequence(s)  -&gt;  agent
+</code></pre>
+<p><code>verif_pkg.svh</code> imports <code>uvm_pkg</code> and every <code>&lt;proto&gt;_pkg</code>, then includes scoreboard(s), <code>env_top</code>, <code>test_top</code>, then every <code>tc_*</code> with relative paths (<code>../environment/...</code>). A new test case isn't visible to <code>+UVM_TESTNAME</code> until it's added here.</p>
+<h2>How config and the virtual interface flow</h2>
+<p>This is the part to get right. Nothing below the env reads the vif from config_db.</p>
+<ol>
+<li><code>top_tb</code> sets the vif: <code>uvm_config_db #(virtual uart_if)::set(null, "*", "uart_vif", uart_if_inst);</code> then <code>run_test()</code>.</li>
+<li><code>env_top::build_phase</code> creates the config object, gets the vif straight into <code>config_h.vif</code>, sets the config object for each consumer by instance name (below), then calls <code>configuration()</code>, a function that sets every config field, one per line, aligned.</li>
+<li>Agent and scoreboard <code>get</code> the config in <code>build_phase</code>, <code>uvm_fatal</code> on failure.</li>
+<li>Agent hands the config handle down in <code>connect_phase</code> by direct assignment: <code>driver_h.uart_config_h = uart_config_h;</code> (same for monitor).</li>
+<li>Driver and monitor copy <code>vif = uart_config_h.vif;</code> in <code>start_of_simulation_phase</code>.</li>
+</ol>
+<pre><code class="language-systemverilog">uvm_config_db #(uart_config)::set(this, &quot;uart_agent_h&quot;,      &quot;uart_config&quot;, uart_agent_config_h);
+uvm_config_db #(uart_config)::set(this, &quot;uart_scoreboard_h&quot;, &quot;uart_config&quot;, uart_agent_config_h);
+</code></pre>
+<h2>Pieces of an agent</h2>
+<p><strong>typedefs.svh</strong>: every protocol option is an enum (<code>t_reset_polarity</code>, <code>t_data_width</code>, <code>t_parity</code>...). No magic ints in config.</p>
+<p><strong>config</strong> (<code>uvm_object</code>): <code>virtual &lt;proto&gt;_if vif;</code> plus one field per option with a sane default, aligned in columns. No logic in it.</p>
+<p><strong>interface</strong>: only clock and reset are ports. Every DUT-facing signal is a <code>logic</code> inside. Timing constants are <code>parameter c_*</code> with a comment giving the formula. <code>top_tb</code> uses these params for clock/reset generation.</p>
+<p><strong>seqit</strong>: keep stimulus fields and observed fields separate (<code>data_arr[]</code> is what the driver sends, <code>mon_data</code> is what the monitor saw). Implement <code>do_print</code> and <code>do_compare</code> by hand, no field macros. <code>do_compare</code> fatals on null rhs, <code>$cast</code>s, and compares only the observed fields.</p>
+<p><strong>sequencer</strong>: just the factory macro and <code>new</code>. Parameterized on the seqit.</p>
+<p><strong>sequence</strong>: <code>body()</code> does <code>start_item(req)</code>, fill fields, <code>finish_item(req)</code>. Directed data lives here.</p>
+<p><strong>driver</strong>: <code>run_phase</code> is always:</p>
+<pre><code class="language-systemverilog">reset_&lt;x&gt;_bus();   // put outputs in idle state
+wait_reset();      // honour config reset_polarity
+&lt;compute timing from config&gt;
+forever begin
+   seq_item_port.get_next_item(req);
+   drive_data(req);
+   seq_item_port.item_done();
+end
+</code></pre>
+<p>Split protocol work into small <code>virtual task</code>s: <code>drive_data</code> (the frame), <code>drive_if</code> (one pin update + one bit time). Protocol options are handled with <code>case</code> on the config enum, with a branch per value.</p>
+<p><strong>monitor</strong>: <code>run_phase</code> computes timing, waits for reset, then loops <code>collect_data()</code>. <code>collect_data</code> creates a fresh seqit per transaction via the factory, samples at the middle of each bit/beat, checks every protocol field inline (start, parity, stop) with a labelled <code>uvm_info</code> on pass and a labelled <code>uvm_error</code> on fail, then <code>monitor_port.write(item)</code>. The analysis port is always named <code>monitor_port</code> and constructed in <code>new</code>.</p>
+<p><strong>agent</strong>: holds <code>driver_h</code>, <code>monitor_h</code>, <code>sequencer_h</code>, <code>&lt;proto&gt;_config_h</code>. <code>build_phase</code>: get config, create the three components. <code>connect_phase</code>: <code>driver_h.seq_item_port.connect(sequencer_h.seq_item_export)</code> and assign the config handles.</p>
+<h2>Environment</h2>
+<ul>
+<li><code>env_top</code> owns, per protocol: <code>&lt;proto&gt;_agent_h</code>, <code>&lt;proto&gt;_agent_config_h</code>, and the scoreboard. Order in <code>build_phase</code>: create config, create agent, create scoreboard, get vif, set config_db, call <code>configuration()</code>.</li>
+<li><code>connect_phase</code> wires each monitor to its scoreboard: <code>uart_agent_h.monitor_h.monitor_port.connect(uart_scoreboard_h.observed);</code></li>
+<li>Scoreboard uses <code>`uvm_analysis_imp_decl(_observed)</code> / <code>(_expected)</code> so it can take several streams, with <code>write_observed</code> / <code>write_expected</code>. Expected items sit in a queue (<code>expected_data[$]</code>), each observed item pops the front and compares with <code>tr.compare(exp)</code>. Keep <code>number_of_passed</code> and <code>number_of_err</code> counters and report in <code>check_phase</code>: error if any failed, info if any passed, error if nothing was checked at all (an empty run must not pass).</li>
+</ul>
+<h2>Tests</h2>
+<ul>
+<li><code>test_top</code> only creates <code>env_h</code>. All test cases extend <code>test_top</code>.</li>
+<li>A <code>tc_*</code> test:</li>
+<li><code>build_phase</code>: <code>super.build_phase</code>, create its sequences.</li>
+<li><code>start_of_simulation_phase</code>: push expected seqits into <code>env_h.&lt;proto&gt;_scoreboard_h.expected_data</code>.</li>
+<li><code>run_phase</code>: raise objection, <code>seq_h.start(env_h.&lt;proto&gt;_agent_h.sequencer_h)</code>, fixed drain delay so the last frame gets through the DUT, drop objection.</li>
+<li>Pick the test at run time with <code>+UVM_TESTNAME</code>, never hard-code it in <code>run_test()</code>.</li>
+</ul>
+<h2>top_tb</h2>
+<p>Order: <code>`include</code> the interface and <code>verif_pkg</code>, import <code>uvm_pkg</code> and <code>verif_pkg</code>, clock/reset as <code>bit</code>, clock <code>always</code> from <code>c_CLOCK_PERIOD_NS</code>, reset sequence in an <code>initial</code>, interface instance, DUT instance with every port connected through <code>&lt;proto&gt;_if_inst.&lt;signal&gt;</code> (unused outputs left as <code>()</code>), then the <code>initial</code> doing config_db set and <code>run_test()</code>. Port connections are aligned in columns.</p>
+<h2>run.do</h2>
+<p>All paths and names are <code>set</code> variables at the top with a trailing comment. Compile order: RTL into <code>&lt;dut&gt;_lib</code>, then into the sim lib: <code>uvm_pkg.sv</code> (<code>+define+UVM_NO_DPI</code>), each <code>&lt;proto&gt;_pkg.svh</code>, then <code>top_tb.sv</code> with <code>+incdir+</code> for agent, uvm and test dirs. Sim with <code>-L &lt;dut&gt;_lib</code>, <code>+UVM_TESTNAME</code>, <code>+UVM_VERBOSITY</code>, <code>-t 1ns</code>. A new agent needs its own dir variable, its own <code>vlog</code> line before <code>top_tb</code>, and its dir in top_tb's <code>+incdir+</code>. Add <code>add wave</code> for the new interface instance.</p>
+<p>If <code>eda_playground/build.py</code> is in use, add the new agent dir to <code>SEARCH_DIRS</code> and re-run it.</p>
+<h2>Style</h2>
+<ul>
+<li>Indent 3 spaces in new files (the repo mixes 3 and 4; 3 is more common).</li>
+<li>Align <code>=</code>, <code>;</code> and port connections in columns in declaration blocks, config assignments and port maps.</li>
+<li>Comments are one short line above the block they describe, saying what it does or why (<code>// Wait until middle of start bit</code>). No banners, no comments restating the code.</li>
+<li>Times: use real time literals (<code>1s / real'(baud_rate)</code>) rather than hand-scaled numbers so it doesn't depend on the timescale.</li>
+</ul>
+<h2>Bugs in the reference code, don't copy them</h2>
+<ul>
+<li><code>uart_scoreboard</code>: <code>expected</code> is declared as <code>uvm_analysis_imp_observed</code> and never constructed. It should be <code>uvm_analysis_imp_expected</code> and get <code>new</code>'d in the constructor.</li>
+<li><code>uart_monitor::run_phase</code> waits <code>@(posedge vif.resetn_i)</code> regardless of <code>reset_polarity</code>. Use the same <code>wait_reset()</code> logic as the driver.</li>
+<li>Driver computes <code>bit_time</code> as <code>(1/baud)*10**9</code> (assumes 1 ns units), monitor uses <code>1s/baud</code>. Use the <code>1s</code> form in both.</li>
+<li><code>collect_data</code> has its own <code>forever</code> and is also called inside a <code>forever</code> in <code>run_phase</code>. One loop is enough.</li>
+<li>Monitor samples with <code>&lt;=</code> into <code>mon_data</code>. Use blocking <code>=</code> in class code.</li>
+<li>Scoreboard <code>write_observed</code> creates an item and then overwrites it with <code>pop_front()</code>. Just pop. Also check the queue isn't empty before popping.</li>
+<li><code>top_tb</code> sets the vif with <code>"*"</code> scope. Prefer <code>"uvm_test_top.env_h"</code> so it only reaches the env.</li>
+<li><code>uart_driver</code> and <code>uart_scoreboard</code> define methods inline instead of <code>extern</code>. Use <code>extern</code> for new classes.</li>
+</ul>
+</body>
+</html>
